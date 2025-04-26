@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-manager
+  labels:
+    app: task-manager
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: task-manager
+  template:
+    metadata:
+      labels:
+        app: task-manager
+    spec:
+      containers:
+      - name: task-manager
+        image: task-manager:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+        env:
+        # ConfigMap values
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: NODE_ENV
+        - name: NEXT_PUBLIC_NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: NODE_ENV
+        - name: APP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: APP_VERSION
+        - name: NEXT_PUBLIC_APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: NEXT_PUBLIC_APP_NAME
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NEXT_PUBLIC_ENABLE_CATEGORIES
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: NEXT_PUBLIC_ENABLE_CATEGORIES
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: LOG_LEVEL
+        - name: MAX_TASKS
+          valueFrom:
+            configMapKeyRef:
+              name: task-manager-config
+              key: MAX_TASKS
+        # Secret values
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: task-manager-secrets
+              key: DATABASE_URL
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: task-manager-secrets
+              key: API_KEY
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: task-manager-secrets
+              key: JWT_SECRET
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "512Mi"
+          requests:
+            cpu: "0.2"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
